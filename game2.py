@@ -818,7 +818,7 @@ def keyboard_callback(key, x, y):
 
 
 ##################################
-if __name__ == "__main__":  # RUN THISSS SCRIPT
+if __name__ == "__main__":  
     glutInit()
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH)
     glutInitWindowSize(800, 800)
