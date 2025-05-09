@@ -61,6 +61,8 @@ STARS_DELTA_Y = 0
 ROAD_DELTA_Z = 0
 BALL_ROT_ANGLE = 0
 LAST_BLACK_BALL_TIME = 0  # Track when last black ball was added
+BALL_SPEED = 0.9  # Initial ball speed
+BASE_BALL_SPEED = 0.9  # Base speed for level 1
 for _i in range(100):
     _x = random.uniform(-2, 2)  # float no
     _y = random.uniform(-3, 3)
@@ -262,7 +264,7 @@ def reset():
         JUMPING, WALL_Z, SHOW_WALL, WALL_COLOR, DEAD, STARS_DELTA_Y, \
         MAIN_BALL_COLOR, START_GAME, NEXT_JUMP, FALLING, PAUSE, \
         ROT_ANGLE, FINISH_Z, LEVEL_UP, ROT_DIREC, GO_NEXT_LEVEL, INC_LEVEL, \
-        ENTERED_NEXT_LEVEL, BALL_ROT_ANGLE, LAST_BLACK_BALL_TIME
+        ENTERED_NEXT_LEVEL, BALL_ROT_ANGLE, LAST_BLACK_BALL_TIME, BALL_SPEED, BASE_BALL_SPEED
 
     ROAD_DELTA_Z = 0
     TEXTURE_NAMES = 0, 1, 2, 3, 4  # Texture Names List
@@ -294,6 +296,7 @@ def reset():
     ROT_DIREC = 1
     BALL_ROT_ANGLE = 0
     LAST_BLACK_BALL_TIME = time.time()  # Reset black ball timer
+    BALL_SPEED = BASE_BALL_SPEED  # Reset ball speed to base speed
 
 
 def draw_start():
@@ -645,7 +648,7 @@ def add_black_ball():
 def ball_generation():
     global MAIN_BALL_CURR_X, MAIN_BALL_Y, BALLS_LIST, \
         COLORS_LIST, POINTS, START_GAME, MAIN_BALL_COLOR, \
-        DEAD
+        DEAD, BALL_SPEED
 
     ball_color = random.choice(COLORS_LIST)
     
@@ -671,6 +674,8 @@ def ball_generation():
                 elif moving_ball.color == MAIN_BALL_COLOR:
                     POINTS += 1
                     if POINTS % 15 == 0:  # Next Level !!?
+                        # Increase ball speed by 10% for each level
+                        BALL_SPEED = BASE_BALL_SPEED * (1 + (LEVEL * 0.1))
                         BALLS_LIST.append(Ball(0, 0, -100, 0.5, ball_color))
                     moving_ball.x = random.choice(POSITIONS_LIST)
                     moving_ball.z = -100
@@ -687,7 +692,7 @@ def ball_generation():
 
             else:  # the ball is still coming ??! continue
                 if not DEAD:
-                    moving_ball.z += 0.9
+                    moving_ball.z += BALL_SPEED  # Use the current ball speed
 
 
 def draw():
@@ -852,4 +857,4 @@ if __name__ == "__main__":  # RUN THISSS SCRIPT
 
     init_textures()
     init_projection()
-    glutMainLoop()   #new black ball (score reducer feature) 
+    glutMainLoop()
