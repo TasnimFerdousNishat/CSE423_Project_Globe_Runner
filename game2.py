@@ -92,11 +92,11 @@ def loadTextures():
     
     # List of texture files
     texture_files = [
-        "road_tex6.png",
+        "road_tex6.jpg",
         "interface_off.jpg",
         "interface_on.jpg",
         "race-finish.png",
-        "skky.png"
+        "skky.jpg"
     ]
     
     # Generate texture names
