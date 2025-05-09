@@ -4,6 +4,7 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 from PIL import Image
 import os
+import time
 
 ################
 #  CONSTANTS   #
@@ -59,6 +60,7 @@ FINISH_Z = -400  # detecting the end of the level
 STARS_DELTA_Y = 0
 ROAD_DELTA_Z = 0
 BALL_ROT_ANGLE = 0
+LAST_BLACK_BALL_TIME = 0  # Track when last black ball was added
 for _i in range(100):
     _x = random.uniform(-2, 2)  # float no
     _y = random.uniform(-3, 3)
@@ -135,13 +137,14 @@ def loadTextures():
 
 # BALL CLASS #
 class Ball:
-    def __init__(self, x, y, z, radius, color):
+    def __init__(self, x, y, z, radius, color, is_black=False):
         self.x = x
         self.y = y
         self.z = z
         self.radius = radius
         self.color = color
         self.scale = [0.5, 0.5, 0.5]
+        self.is_black = is_black  # New attribute to identify black balls
 
     def draw(self):
         glColor3ub(self.color[0], self.color[1], self.color[2])
@@ -259,7 +262,7 @@ def reset():
         JUMPING, WALL_Z, SHOW_WALL, WALL_COLOR, DEAD, STARS_DELTA_Y, \
         MAIN_BALL_COLOR, START_GAME, NEXT_JUMP, FALLING, PAUSE, \
         ROT_ANGLE, FINISH_Z, LEVEL_UP, ROT_DIREC, GO_NEXT_LEVEL, INC_LEVEL, \
-        ENTERED_NEXT_LEVEL, BALL_ROT_ANGLE
+        ENTERED_NEXT_LEVEL, BALL_ROT_ANGLE, LAST_BLACK_BALL_TIME
 
     ROAD_DELTA_Z = 0
     TEXTURE_NAMES = 0, 1, 2, 3, 4  # Texture Names List
@@ -290,6 +293,7 @@ def reset():
     ENTERED_NEXT_LEVEL = False
     ROT_DIREC = 1
     BALL_ROT_ANGLE = 0
+    LAST_BLACK_BALL_TIME = time.time()  # Reset black ball timer
 
 
 def draw_start():
@@ -592,8 +596,8 @@ def draw_sky():
 ##############################
 COLORS_LIST = [[232, 99, 10], [248, 6, 204], [84, 99, 255]]
 
-ball = Ball(0, 0, -100, 0.5, COLORS_LIST[0])
-BALLS_LIST = [ball]
+# Initialize balls list with one regular ball
+BALLS_LIST = [Ball(0, 0, -100, 0.5, COLORS_LIST[0])]
 
 
 ##################################################################
@@ -630,12 +634,25 @@ def move_main_ball():
             FALLING = False
 
 
+def add_black_ball():
+    global LAST_BLACK_BALL_TIME
+    current_time = time.time()
+    if current_time - LAST_BLACK_BALL_TIME >= 3:  # 3 seconds have passed
+        BALLS_LIST.append(Ball(random.choice(POSITIONS_LIST), 0, -100, 0.5, [0, 0, 0], is_black=True))
+        LAST_BLACK_BALL_TIME = current_time
+
+
 def ball_generation():
     global MAIN_BALL_CURR_X, MAIN_BALL_Y, BALLS_LIST, \
         COLORS_LIST, POINTS, START_GAME, MAIN_BALL_COLOR, \
         DEAD
 
     ball_color = random.choice(COLORS_LIST)
+    
+    # Add a new black ball every 3 seconds
+    if START_GAME and not PAUSE and not DEAD:
+        add_black_ball()
+    
     # drawing balls
     for moving_ball in BALLS_LIST:
         moving_ball.draw()
@@ -646,8 +663,12 @@ def ball_generation():
             if MAIN_BALL_CURR_X == moving_ball.x and round(moving_ball.z) == 4 and \
                     round(MAIN_BALL_Y) == moving_ball.y:
 
+                if moving_ball.is_black:  # Handle black ball collision
+                    POINTS = max(0, POINTS - 1)  # Reduce score by 1, but not below 0
+                    moving_ball.x = random.choice(POSITIONS_LIST)
+                    moving_ball.z = -100
                 # like generating another ball with the same color
-                if moving_ball.color == MAIN_BALL_COLOR:
+                elif moving_ball.color == MAIN_BALL_COLOR:
                     POINTS += 1
                     if POINTS % 15 == 0:  # Next Level !!?
                         BALLS_LIST.append(Ball(0, 0, -100, 0.5, ball_color))
@@ -656,13 +677,13 @@ def ball_generation():
 
                 else:  # died
                     DEAD = True
-                    # POINTS = 0
 
             elif round(moving_ball.z) >= 7:  # the moving ball has passed the main ball
                 # like generating new ball with new color
                 moving_ball.x = random.choice(POSITIONS_LIST)
                 moving_ball.z = -100
-                moving_ball.color = ball_color
+                if not moving_ball.is_black:  # Only change color for non-black balls
+                    moving_ball.color = ball_color
 
             else:  # the ball is still coming ??! continue
                 if not DEAD:
@@ -818,7 +839,7 @@ def keyboard_callback(key, x, y):
 
 
 ##################################
-if __name__ == "__main__":  
+if __name__ == "__main__":  # RUN THISSS SCRIPT
     glutInit()
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH)
     glutInitWindowSize(800, 800)
@@ -831,4 +852,4 @@ if __name__ == "__main__":
 
     init_textures()
     init_projection()
-    glutMainLoop()
+    glutMainLoop()   #new black ball (score reducer feature) 
