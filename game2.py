@@ -92,11 +92,11 @@ def loadTextures():
     
     # List of texture files
     texture_files = [
-        "road_tex6.png",
+        "road_tex6.jpg",
         "interface_off.jpg",
         "interface_on.jpg",
         "race-finish.png",
-        "skky.png"
+        "skky.jpg"
     ]
     
     # Generate texture names
@@ -818,12 +818,12 @@ def keyboard_callback(key, x, y):
 
 
 ##################################
-if __name__ == "__main__":  # RUN THISSS SCRIPT
+if __name__ == "__main__":
     glutInit()
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH)
     glutInitWindowSize(800, 800)
     glutInitWindowPosition(0, 0)
-    glutCreateWindow(b"ROCKET ROAD")
+    glutCreateWindow(b"Golbe Runner")
 
     glutTimerFunc(INTERVAL, game_timer, 1)
     glutDisplayFunc(draw)

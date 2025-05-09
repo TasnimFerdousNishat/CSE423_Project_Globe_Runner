@@ -1,9 +1,9 @@
 import random
-
-import pygame
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
+from PIL import Image
+import os
 
 ################
 #  CONSTANTS   #
@@ -18,7 +18,7 @@ AT_START = True
 PLAY = False
 BEGIN = True
 
-TEXTURE_NAMES = 0, 1, 2, 3, 4  # Texture Names List
+TEXTURE_NAMES = [0, 1, 2, 3, 4]  # Texture Names List
 POINTS = 0  # POINTS COUNTER
 LEVEL = 1
 # main ball PARAMETERS
@@ -71,58 +71,63 @@ for _i in range(100):
 def init_textures():
     loadTextures()
 
-
 def texture_setup(texture_image_binary, texture_name, width, height):
-    """  Assign texture attributes to specific images.
-    """
-    glBindTexture(GL_TEXTURE_2D, texture_name)  # texture init step [5]
-
-    # texture init step [6]
-    # affects the active selected texture which is identified by texture_name
+    glBindTexture(GL_TEXTURE_2D, texture_name)
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
-                    GL_REPEAT)  # GL_MIRRORED_REPEAT , GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-    # END: texture init step [6]
-
+    
     glTexImage2D(GL_TEXTURE_2D,
-                 0,  # mipmap
-                 3,  # Bytes per pixel
+                 0,
+                 GL_RGBA,
                  width, height,
-                 0,  # Texture border
-                 GL_RGBA,  # RGBA Exactly as in  pygame.image.tostring(image, "RGBA", True)
+                 0,
+                 GL_RGBA,
                  GL_UNSIGNED_BYTE,
-                 texture_image_binary)  # texture init step [7]
-
+                 texture_image_binary)
 
 def loadTextures():
-    """  Open images and convert them to "raw" pixel maps and
-             bind or associate each image with and integer reference number.
-    """
-    glEnable(GL_TEXTURE_2D)  # texture init step [1]
-
-    # Load images from file system
-    images = [pygame.image.load("road_tex6.jpg"),
-              pygame.image.load("interface_off.jpg"),
-              pygame.image.load("interface_on.jpg"),
-              pygame.image.load("race-finish.png"),
-              pygame.image.load("skky.jpg")]  # texture init step [2]
-
-    # textures list contains all images in the needed format for textures
-    textures = [pygame.image.tostring(image, "RGBA", True)
-                for image in images]  # texture init step [3]
-
-    # Generate textures names from TEXTURE_NAMES list
-    glGenTextures(len(images), TEXTURE_NAMES)  # texture init step [4]
-
-    # Add textures to openGL
-    for i in range(len(images)):
-        texture_setup(textures[i],  # binary images
-                      TEXTURE_NAMES[i],  # identifiers
-                      images[i].get_width(),
-                      images[i].get_height())
-
+    glEnable(GL_TEXTURE_2D)
+    
+    # List of texture files
+    texture_files = [
+        "road_tex6.jpg",
+        "interface_off.jpg",
+        "interface_on.jpg",
+        "race-finish.png",
+        "skky.jpg"
+    ]
+    
+    # Generate texture names
+    global TEXTURE_NAMES
+    TEXTURE_NAMES = glGenTextures(len(texture_files))
+    
+    # Load each texture
+    for i, filename in enumerate(texture_files):
+        try:
+            # Open image using PIL
+            image = Image.open(filename)
+            
+            # Flip vertically (OpenGL expects bottom-left origin)
+            image = image.transpose(Image.FLIP_TOP_BOTTOM)
+            
+            # Convert to RGBA if not already
+            if image.mode != 'RGBA':
+                image = image.convert('RGBA')
+                
+            # Get raw image data
+            img_data = image.tobytes()
+            
+            # Set up texture
+            texture_setup(img_data, TEXTURE_NAMES[i], image.width, image.height)
+            
+        except Exception as e:
+            print(f"Error loading texture {filename}: {str(e)}")
+            # Create a fallback magenta texture
+            blank_image = Image.new('RGBA', (64, 64), (255, 0, 255, 255))
+            blank_data = blank_image.tobytes()
+            texture_setup(blank_data, TEXTURE_NAMES[i], 64, 64)
 
 ####################################
 #     Helper Funcs  and classes    #
@@ -130,28 +135,21 @@ def loadTextures():
 
 # BALL CLASS #
 class Ball:
-
     def __init__(self, x, y, z, radius, color):
         self.x = x
         self.y = y
         self.z = z
         self.radius = radius
-
         self.color = color
-
         self.scale = [0.5, 0.5, 0.5]
 
     def draw(self):
         glColor3ub(self.color[0], self.color[1], self.color[2])
-
         glLoadIdentity()
         reposition_camera()
-
         glTranslatef(self.x, self.y, self.z)
         glScale(self.scale[0], self.scale[1], self.scale[2])
-
         glutSolidSphere(1, 20, 10)
-
 
 def change_wall_color():
     global WALL_COLOR, COLORS_LIST, MAIN_BALL_COLOR
