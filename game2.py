@@ -849,7 +849,7 @@ if __name__ == "__main__":  # RUN THISSS SCRIPT
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH)
     glutInitWindowSize(800, 800)
     glutInitWindowPosition(0, 0)
-    glutCreateWindow(b"ROCKET ROAD")
+    glutCreateWindow(b"Globe Runner")
 
     glutTimerFunc(INTERVAL, game_timer, 1)
     glutDisplayFunc(draw)
