@@ -63,6 +63,7 @@ BALL_ROT_ANGLE = 0
 LAST_BLACK_BALL_TIME = 0  # Track when last black ball was added
 BALL_SPEED = 0.9  # Initial ball speed
 BASE_BALL_SPEED = 0.9  # Base speed for level 1
+BLACK_BALL_INTERVAL = 10  # Increase time between black balls (from 3 to 10 seconds)
 for _i in range(100):
     _x = random.uniform(-2, 2)  # float no
     _y = random.uniform(-3, 3)
@@ -264,7 +265,8 @@ def reset():
         JUMPING, WALL_Z, SHOW_WALL, WALL_COLOR, DEAD, STARS_DELTA_Y, \
         MAIN_BALL_COLOR, START_GAME, NEXT_JUMP, FALLING, PAUSE, \
         ROT_ANGLE, FINISH_Z, LEVEL_UP, ROT_DIREC, GO_NEXT_LEVEL, INC_LEVEL, \
-        ENTERED_NEXT_LEVEL, BALL_ROT_ANGLE, LAST_BLACK_BALL_TIME, BALL_SPEED, BASE_BALL_SPEED
+        ENTERED_NEXT_LEVEL, BALL_ROT_ANGLE, LAST_BLACK_BALL_TIME, BALL_SPEED, BASE_BALL_SPEED, \
+        BLACK_BALL_INTERVAL
 
     ROAD_DELTA_Z = 0
     TEXTURE_NAMES = 0, 1, 2, 3, 4  # Texture Names List
@@ -297,6 +299,7 @@ def reset():
     BALL_ROT_ANGLE = 0
     LAST_BLACK_BALL_TIME = time.time()  # Reset black ball timer
     BALL_SPEED = BASE_BALL_SPEED  # Reset ball speed to base speed
+    BLACK_BALL_INTERVAL = 10  # Reset black ball interval
 
 
 def draw_start():
@@ -638,11 +641,14 @@ def move_main_ball():
 
 
 def add_black_ball():
-    global LAST_BLACK_BALL_TIME
+    global LAST_BLACK_BALL_TIME, BLACK_BALL_INTERVAL
     current_time = time.time()
-    if current_time - LAST_BLACK_BALL_TIME >= 3:  # 3 seconds have passed
-        BALLS_LIST.append(Ball(random.choice(POSITIONS_LIST), 0, -100, 0.5, [0, 0, 0], is_black=True))
-        LAST_BLACK_BALL_TIME = current_time
+    # Only add a black ball if enough time has passed (10 seconds now instead of 3)
+    if current_time - LAST_BLACK_BALL_TIME >= BLACK_BALL_INTERVAL:
+        # Only add a black ball if random chance passes (50% chance)
+        if random.random() < 0.5:
+            BALLS_LIST.append(Ball(random.choice(POSITIONS_LIST), 0, -100, 0.5, [0, 0, 0], is_black=True))
+            LAST_BLACK_BALL_TIME = current_time
 
 
 def ball_generation():
@@ -652,7 +658,7 @@ def ball_generation():
 
     ball_color = random.choice(COLORS_LIST)
     
-    # Add a new black ball every 3 seconds
+    # Add a new black ball with reduced frequency
     if START_GAME and not PAUSE and not DEAD:
         add_black_ball()
     
@@ -849,7 +855,7 @@ if __name__ == "__main__":  # RUN THISSS SCRIPT
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH)
     glutInitWindowSize(800, 800)
     glutInitWindowPosition(0, 0)
-    glutCreateWindow(b"Globe Runner")
+    glutCreateWindow(b"ROCKET ROAD")
 
     glutTimerFunc(INTERVAL, game_timer, 1)
     glutDisplayFunc(draw)
